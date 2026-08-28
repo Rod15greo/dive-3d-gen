@@ -226,6 +226,13 @@ namespace Dive.ThreeDGen.Editor
                 return;
             }
 
+            if (job.glbBytes == null || job.glbBytes.Length == 0)
+            {
+                _lastError = "Servidor retornou resposta vazia. Verifique os logs do Modal.";
+                Repaint();
+                return;
+            }
+
             // Salva o GLB no projeto
             string dir = "Assets/Dive3DGen/Generated";
             Directory.CreateDirectory(dir);
@@ -264,16 +271,20 @@ namespace Dive.ThreeDGen.Editor
     }
 
     // ------------------------------------------------------------------ //
-    // Helper: roda Coroutines dentro do Editor sem MonoBehaviour
+    // Helper: roda Coroutines dentro do Editor sem MonoBehaviour.
+    // Suporta: IEnumerator aninhado, WaitForSeconds, yield return null.
     // ------------------------------------------------------------------ //
     internal class EditorCoroutineRunner
     {
-        System.Collections.IEnumerator _routine;
+        readonly System.Collections.Generic.Stack<System.Collections.IEnumerator> _stack
+            = new System.Collections.Generic.Stack<System.Collections.IEnumerator>();
+        double _waitUntil;
         bool _stopped;
 
         public static EditorCoroutineRunner Start(System.Collections.IEnumerator routine)
         {
-            var runner = new EditorCoroutineRunner { _routine = routine };
+            var runner = new EditorCoroutineRunner();
+            runner._stack.Push(routine);
             EditorApplication.update += runner.Tick;
             return runner;
         }
@@ -286,8 +297,36 @@ namespace Dive.ThreeDGen.Editor
 
         void Tick()
         {
-            if (_stopped) return;
-            if (!_routine.MoveNext()) Stop();
+            if (_stopped || _stack.Count == 0) { Stop(); return; }
+
+            // Emula WaitForSeconds no Editor
+            if (EditorApplication.timeSinceStartup < _waitUntil) return;
+
+            var top = _stack.Peek();
+            if (!top.MoveNext())
+            {
+                _stack.Pop();
+                if (_stack.Count == 0) Stop();
+                return;
+            }
+
+            var yielded = top.Current;
+
+            if (yielded is System.Collections.IEnumerator nested)
+            {
+                // Coroutine aninhada: empilha e executa primeiro
+                _stack.Push(nested);
+            }
+            else if (yielded is WaitForSeconds wait)
+            {
+                // Extrai duração via reflection (campo interno do Unity)
+                var f = typeof(WaitForSeconds).GetField(
+                    "m_Seconds",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                float secs = f != null ? (float)f.GetValue(wait) : 1f;
+                _waitUntil = EditorApplication.timeSinceStartup + secs;
+            }
+            // null / outros: aguarda um frame
         }
     }
 }

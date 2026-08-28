@@ -7,6 +7,7 @@ Suporta 3 modelos: sf3d | trellis | hunyuan
 import base64
 import io
 import os
+from pathlib import Path
 from typing import Optional
 
 import modal
@@ -26,6 +27,7 @@ model_volume = modal.Volume.from_name("dive-3d-gen-models", create_if_missing=Tr
 # Dict persistente: API keys  {token: {name, created_at, requests}}
 api_keys_store = modal.Dict.from_name("dive-3d-gen-api-keys", create_if_missing=True)
 
+
 # ---------------------------------------------------------------------------
 # Container images (uma por modelo para isolamento de dependências)
 # ---------------------------------------------------------------------------
@@ -44,17 +46,16 @@ sf3d_image = (
         "einops", "omegaconf", "jaxtyping", "rembg[gpu]", "open_clip_torch",
     )
     .run_commands(
-        # SF3D não tem pyproject.toml — clonar e instalar dependências manualmente
         "git clone --depth=1 https://github.com/Stability-AI/stable-fast-3d.git /sf3d",
         "pip install -r /sf3d/requirements.txt --extra-index-url https://download.pytorch.org/whl/cu121 || true",
     )
+    .add_local_dir("models", remote_path="/root/models")
 )
 
-# TRELLIS: reservado para fase 2 (flash-attn + spconv precisam de imagem dedicada)
-# Usa a mesma base do SF3D como placeholder para o deploy não falhar
 trellis_image = (
     modal.Image.from_registry(_cuda_base, add_python="3.10")
     .pip_install("huggingface_hub", "Pillow", "trimesh[easy]", "numpy")
+    .add_local_dir("models", remote_path="/root/models")
 )
 
 hunyuan_image = (
@@ -73,6 +74,7 @@ hunyuan_image = (
         "git clone --depth=1 https://github.com/deepbeepmeep/Hunyuan3D-2GP.git /hunyuan",
         "cd /hunyuan && pip install -e . --no-deps || pip install -r requirements.txt --no-deps || true",
     )
+    .add_local_dir("models", remote_path="/root/models")
 )
 
 web_image = (
@@ -88,6 +90,7 @@ web_image = (
     gpu="A10G",
     image=sf3d_image,
     volumes={"/models": model_volume},
+
     timeout=120,
     memory=16384,
 )
@@ -106,6 +109,7 @@ def run_sf3d(image_bytes: bytes, quality: str = "balanced") -> bytes:
     gpu="A10G",
     image=trellis_image,
     volumes={"/models": model_volume},
+
     timeout=300,
     memory=20480,
 )
@@ -122,6 +126,7 @@ def run_trellis(
     gpu="A10G",
     image=hunyuan_image,
     volumes={"/models": model_volume},
+
     timeout=300,
     memory=24576,
 )

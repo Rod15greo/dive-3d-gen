@@ -9,7 +9,7 @@
     "url": "https://github.com/Rod15greo/dive-3d-gen"
   },
   "dependencies": {
-    "com.unity.cloud.gltfast": "6.10.0"
+    "com.unity.cloud.gltfast": "6.0.0"
   },
   "keywords": ["3d", "ai", "generation", "gltf", "mesh"]
 }

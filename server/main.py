@@ -54,7 +54,7 @@ hunyuan_image = (
     modal.Image.from_registry(_cuda_base, add_python="3.10")
     .apt_install("git", "libgl1", "libglib2.0-0")
     .pip_install(
-        "torch==2.2.0", "torchvision==0.17.0",
+        "torch==2.4.0", "torchvision==0.19.0",
         extra_index_url="https://download.pytorch.org/whl/cu121",
     )
     .pip_install(

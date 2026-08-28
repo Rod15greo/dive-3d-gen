@@ -2,7 +2,7 @@
   "name": "Dive3DGen.Runtime",
   "rootNamespace": "Dive.ThreeDGen",
   "references": [
-    "GLTFast"
+    "glTFast"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -2,7 +2,7 @@
   "name": "Dive3DGen.Runtime",
   "rootNamespace": "Dive.ThreeDGen",
   "references": [
-    "Unity.Cloud.Gltfast"
+    "GLTFast"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

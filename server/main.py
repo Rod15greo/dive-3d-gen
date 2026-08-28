@@ -61,10 +61,13 @@ hunyuan_image = (
         "huggingface_hub", "Pillow", "numpy", "trimesh[easy]",
         "einops", "diffusers>=0.30.0", "accelerate", "transformers",
         "omegaconf", "pytorch-lightning", "tqdm",
+        "scikit-image", "scipy", "opencv-python-headless",
+        "xatlas", "pymeshlab",
     )
     .run_commands(
         "git clone --depth=1 https://github.com/deepbeepmeep/Hunyuan3D-2GP.git /hunyuan",
-        "cd /hunyuan && pip install -e . --no-deps || true",
+        "pip install -r /hunyuan/requirements.txt --extra-index-url https://download.pytorch.org/whl/cu121 || true",
+        "cd /hunyuan && pip install -e . || true",
     )
     .add_local_dir("models", remote_path="/root/models")
 )

@@ -1,0 +1,16 @@
+{
+  "name": "Dive3DGen.Runtime",
+  "rootNamespace": "Dive.ThreeDGen",
+  "references": [
+    "Unity.Cloud.Gltfast"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

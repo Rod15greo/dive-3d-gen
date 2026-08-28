@@ -279,6 +279,7 @@ namespace Dive.ThreeDGen.Editor
         readonly System.Collections.Generic.Stack<System.Collections.IEnumerator> _stack
             = new System.Collections.Generic.Stack<System.Collections.IEnumerator>();
         double _waitUntil;
+        AsyncOperation _pendingOp;
         bool _stopped;
 
         public static EditorCoroutineRunner Start(System.Collections.IEnumerator routine)
@@ -299,8 +300,15 @@ namespace Dive.ThreeDGen.Editor
         {
             if (_stopped || _stack.Count == 0) { Stop(); return; }
 
-            // Emula WaitForSeconds no Editor
+            // Aguarda WaitForSeconds
             if (EditorApplication.timeSinceStartup < _waitUntil) return;
+
+            // Aguarda AsyncOperation (UnityWebRequest, etc.)
+            if (_pendingOp != null)
+            {
+                if (!_pendingOp.isDone) return;
+                _pendingOp = null;
+            }
 
             var top = _stack.Peek();
             if (!top.MoveNext())
@@ -314,19 +322,22 @@ namespace Dive.ThreeDGen.Editor
 
             if (yielded is System.Collections.IEnumerator nested)
             {
-                // Coroutine aninhada: empilha e executa primeiro
                 _stack.Push(nested);
+            }
+            else if (yielded is AsyncOperation asyncOp)
+            {
+                // Espera a operação completar antes de avançar
+                _pendingOp = asyncOp;
             }
             else if (yielded is WaitForSeconds wait)
             {
-                // Extrai duração via reflection (campo interno do Unity)
                 var f = typeof(WaitForSeconds).GetField(
                     "m_Seconds",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 float secs = f != null ? (float)f.GetValue(wait) : 1f;
                 _waitUntil = EditorApplication.timeSinceStartup + secs;
             }
-            // null / outros: aguarda um frame
+            // null: aguarda um frame
         }
     }
 }

@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# Modal
+.modal/
+
+# Unity
+unity-plugin/com.dive.3dgen/Runtime/*.meta
+unity-plugin/com.dive.3dgen/Editor/*.meta
+unity-plugin/com.dive.3dgen/package.json.meta
+
+# OS
+.DS_Store
+Thumbs.db

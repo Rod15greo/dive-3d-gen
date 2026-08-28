@@ -1,0 +1,15 @@
+{
+  "name": "com.dive.3dgen",
+  "version": "0.1.0",
+  "displayName": "Dive 3D Gen",
+  "description": "Gera assets 3D (GLB) diretamente no Unity Editor via SF3D, TRELLIS ou Hunyuan3D.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Dive Smart Factory",
+    "url": "https://github.com/Rod15greo/dive-3d-gen"
+  },
+  "dependencies": {
+    "com.unity.cloud.gltfast": "6.0.0"
+  },
+  "keywords": ["3d", "ai", "generation", "gltf", "mesh"]
+}

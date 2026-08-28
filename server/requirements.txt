@@ -1,0 +1,6 @@
+# Dependências locais para desenvolvimento/testes
+# O servidor em produção usa as imagens Docker definidas em main.py
+modal>=0.64.0
+fastapi
+python-multipart
+Pillow

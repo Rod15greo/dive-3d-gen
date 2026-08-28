@@ -27,6 +27,8 @@ def _load_model():
     if _model is not None:
         return _model
 
+    import sys
+    sys.path.insert(0, "/sf3d")
     from huggingface_hub import snapshot_download
     from sf3d.models.model import StableFast3D
 

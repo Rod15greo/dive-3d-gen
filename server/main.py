@@ -41,33 +41,20 @@ sf3d_image = (
     )
     .pip_install(
         "huggingface_hub", "Pillow", "numpy", "trimesh[easy]",
-        "einops", "omegaconf", "jaxtyping", "rembg[gpu]",
+        "einops", "omegaconf", "jaxtyping", "rembg[gpu]", "open_clip_torch",
     )
     .run_commands(
-        "pip install git+https://github.com/Stability-AI/stable-fast-3d.git"
+        # SF3D não tem pyproject.toml — clonar e instalar dependências manualmente
+        "git clone --depth=1 https://github.com/Stability-AI/stable-fast-3d.git /sf3d",
+        "pip install -r /sf3d/requirements.txt --extra-index-url https://download.pytorch.org/whl/cu121 || true",
     )
 )
 
+# TRELLIS: reservado para fase 2 (flash-attn + spconv precisam de imagem dedicada)
+# Usa a mesma base do SF3D como placeholder para o deploy não falhar
 trellis_image = (
     modal.Image.from_registry(_cuda_base, add_python="3.10")
-    .apt_install("git", "libgl1", "libglib2.0-0", "libsparsehash-dev")
-    .pip_install(
-        "torch==2.4.0", "torchvision==0.19.0",
-        extra_index_url="https://download.pytorch.org/whl/cu121",
-    )
-    .pip_install(
-        "huggingface_hub", "Pillow", "numpy", "trimesh[easy]",
-        "einops", "easydict", "imageio", "tqdm", "scipy",
-        "xformers==0.0.27.post2",
-    )
-    .run_commands(
-        # flash-attn wheel para cu121 + torch 2.4
-        "pip install flash-attn --no-build-isolation",
-        # spconv (voxelização esparsa necessária para TRELLIS)
-        "pip install spconv-cu120",
-        # TRELLIS
-        "pip install git+https://github.com/microsoft/TRELLIS.git",
-    )
+    .pip_install("huggingface_hub", "Pillow", "trimesh[easy]", "numpy")
 )
 
 hunyuan_image = (
@@ -79,11 +66,12 @@ hunyuan_image = (
     )
     .pip_install(
         "huggingface_hub", "Pillow", "numpy", "trimesh[easy]",
-        "einops", "diffusers==0.27.0", "accelerate", "transformers",
-        "omegaconf", "pytorch-lightning",
+        "einops", "diffusers>=0.30.0", "accelerate", "transformers",
+        "omegaconf", "pytorch-lightning", "tqdm",
     )
     .run_commands(
-        "pip install git+https://github.com/deepbeepmeep/Hunyuan3D-2GP.git"
+        "git clone --depth=1 https://github.com/deepbeepmeep/Hunyuan3D-2GP.git /hunyuan",
+        "cd /hunyuan && pip install -e . --no-deps || pip install -r requirements.txt --no-deps || true",
     )
 )
 
@@ -105,7 +93,8 @@ web_image = (
 )
 def run_sf3d(image_bytes: bytes, quality: str = "balanced") -> bytes:
     """Stable Fast 3D: ~0.5 s/geração, entrada apenas imagem."""
-    import torch
+    import sys
+    sys.path.insert(0, "/sf3d")
     from PIL import Image
     from models.sf3d import generate as sf3d_generate  # noqa: WPS433
 
@@ -125,12 +114,8 @@ def run_trellis(
     image_bytes: Optional[bytes],
     quality: str = "balanced",
 ) -> bytes:
-    """TRELLIS: ~60–90 s, suporta texto e imagem."""
-    from PIL import Image
-    from models.trellis import generate as trellis_generate  # noqa: WPS433
-
-    pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB") if image_bytes else None
-    return trellis_generate(prompt=prompt, image=pil_image, quality=quality)
+    """TRELLIS: fase 2 — ainda não disponível neste deploy."""
+    raise NotImplementedError("TRELLIS será adicionado na fase 2. Use sf3d ou hunyuan.")
 
 
 @app.function(
@@ -146,6 +131,8 @@ def run_hunyuan(
     quality: str = "balanced",
 ) -> bytes:
     """Hunyuan3D-2GP: ~20–60 s, melhor qualidade PBR."""
+    import sys
+    sys.path.insert(0, "/hunyuan")
     from PIL import Image
     from models.hunyuan import generate as hunyuan_generate  # noqa: WPS433
 

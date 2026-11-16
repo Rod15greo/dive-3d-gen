@@ -1,3 +1,5 @@
+> **Repositório substituído.** Esta é a versão antiga (monorepo) do Dive 3D Gen e não recebe mais atualizações. Use os repositórios atuais: [dive-3d-gen-server](https://github.com/Rod15greo/dive-3d-gen-server), [dive-3d-gen-unity](https://github.com/Rod15greo/dive-3d-gen-unity) e [dive-3d-gen-blender](https://github.com/Rod15greo/dive-3d-gen-blender).
+
 # Dive 3D Gen
 
 Geração de assets 3D diretamente no Unity Editor via IA.  
@@ -54,7 +56,7 @@ modal deploy main.py
 ```
 
 O Modal vai exibir a URL pública, ex:  
-`https://rod15greo--dive-3d-gen-serve.modal.run`
+`https://<SEU_WORKSPACE>--dive-3d-gen-serve.modal.run`
 
 ### Criar API keys para os usuários
 ```bash

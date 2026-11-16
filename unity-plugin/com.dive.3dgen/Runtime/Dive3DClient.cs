@@ -5,10 +5,6 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 // Bypassa verificação SSL no Editor (desenvolvimento)
-class BypassCert : CertificateHandler
-{
-    protected override bool ValidateCertificate(byte[] certificateData) => true;
-}
 
 namespace Dive.ThreeDGen
 {
@@ -93,7 +89,6 @@ namespace Dive.ThreeDGen
 
             using var www = UnityWebRequest.Post($"{_baseUrl}/generate", form);
             www.SetRequestHeader("X-API-Key", _apiKey);
-            www.certificateHandler = new BypassCert();
             www.timeout = 60;
 
             yield return www.SendWebRequest();
@@ -114,7 +109,6 @@ namespace Dive.ThreeDGen
         {
             using var www = UnityWebRequest.Get($"{_baseUrl}/status/{job.jobId}");
             www.SetRequestHeader("X-API-Key", _apiKey);
-            www.certificateHandler = new BypassCert();
             www.timeout = 30;
 
             yield return www.SendWebRequest();
